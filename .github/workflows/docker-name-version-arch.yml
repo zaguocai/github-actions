@@ -146,7 +146,7 @@ jobs:
 
       - name: "[SETUP] Determine Docker tag"
         id: tag
-        uses: linuxeye/docker-tag-action@master
+        uses: lapzeon/docker-tag-action@master
 
       # https://github.com/alpinelinux/docker-alpine/issues/98
       - name: "[SETUP] Fix Docker IP forwarding"
@@ -229,7 +229,7 @@ jobs:
 
       - name: "[SETUP] Determine Docker tag"
         id: tag
-        uses: linuxeye/docker-tag-action@master
+        uses: lapzeon/docker-tag-action@master
 
       - name: "[SETUP] Determine manifest arches"
         id: manifest
