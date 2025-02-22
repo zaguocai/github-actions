@@ -68,14 +68,14 @@ jobs:
         if: ${{ inputs.has_refs }}
 
       - name: "[SETUP] Setup QEMU environment"
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+          image: tonistiigi/binfmt:qemu-v8.1.5
+          platforms: linux/amd64,linux/arm64
 
       - name: "[SETUP] Determine Docker tag"
         id: tag
-        uses: zaguocai/docker-tag-action@master
+        uses: linuxeye/docker-tag-action@master
 
       - name: "[SETUP] Set artifact names"
         id: set-artifact-name
@@ -95,12 +95,12 @@ jobs:
       ### Download and import previously built image
       ###
       - name: "[Artifact Load] Download previously built image"
-        uses: cytopia/download-artifact-retry-action@v0.1.5
+        uses: linuxeye/download-artifact-retry-action@master
         with:
           name: ${{ steps.set-artifact-name.outputs.curr }}
 
       - name: "[Artifact Load] Import previously built image"
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make load INFILE=${{ steps.set-artifact-name.outputs.curr }}
@@ -110,7 +110,7 @@ jobs:
       # Re-tag images
       # ------------------------------------------------------------
       - name: "[Docker Tag] Retag"
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make tag VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} TAG=${{ steps.tag.outputs.docker-tag }}
@@ -124,7 +124,7 @@ jobs:
       # Login
       # ------------------------------------------------------------
       - name: Login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -135,7 +135,7 @@ jobs:
       # Push images
       # ------------------------------------------------------------
       - name: Push Image
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make push VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} ARCH=${{ matrix.ARCH }} TAG=${{ steps.tag.outputs.docker-tag }}

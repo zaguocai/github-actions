@@ -86,11 +86,11 @@ jobs:
         if: ${{ inputs.has_refs }}
 
       - name: "[SETUP] Install QEMU environment"
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         id: qemu
         with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+          image: tonistiigi/binfmt:qemu-v8.1.5
+          platforms: linux/amd64,linux/arm64
 
       - name: "[SETUP] Set artifact names"
         id: set-artifact-name
@@ -105,7 +105,7 @@ jobs:
 
       - name: "[SETUP] Determine Docker tag"
         id: tag
-        uses: zaguocai/docker-tag-action@master
+        uses: linuxeye/docker-tag-action@master
 
       # https://github.com/alpinelinux/docker-alpine/issues/98
       - name: "[SETUP] Fix Docker IP forwarding"
@@ -119,13 +119,13 @@ jobs:
       # Artifact Import
       # ------------------------------------------------------------
       - name: "[Artifact Load] Download previously built image"
-        uses: cytopia/download-artifact-retry-action@v0.1.5
+        uses: linuxeye/download-artifact-retry-action@master
         with:
           name: ${{ steps.set-artifact-name.outputs.prev }}
         if: ${{ inputs.stage_prev != '' }}
 
       - name: "[Artifact Load] Import previously built image"
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make load INFILE=${{ steps.set-artifact-name.outputs.prev }}
@@ -136,14 +136,14 @@ jobs:
       # Build
       # ------------------------------------------------------------
       - name: Pull
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make docker-pull-base-image VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} ARCH=${{ matrix.ARCH }}
         if: ${{ inputs.pull_base_image }}
 
       - name: Build
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make build VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} ARCH=${{ matrix.ARCH }}
@@ -153,7 +153,7 @@ jobs:
       # Test
       # ------------------------------------------------------------
       - name: Test
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make test VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} ARCH=${{ matrix.ARCH }}
@@ -164,20 +164,20 @@ jobs:
       # Push
       # ------------------------------------------------------------
       - name: Docker Tag
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make tag VERSION="${{ matrix.VERSION }}" STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} TAG=${{ steps.tag.outputs.docker-tag }}
 
       - name: Docker login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.dockerhub_username }}
           password: ${{ secrets.dockerhub_password }}
         if: ${{ inputs.push_image }}
 
       - name: Docker push
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make push VERSION="${{ matrix.version }}" STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.flavour }} ARCH=${{ matrix.arch }} TAG=${{ steps.tag.outputs.docker-tag }}
@@ -188,7 +188,7 @@ jobs:
       # Artifact Export
       # ------------------------------------------------------------
       - name: "[Artifact Save] Upload built artifact"
-        uses: cytopia/upload-artifact-retry-action@v0.1.7
+        uses: linuxeye/upload-artifact-retry-action@master
         with:
           name: ${{ steps.set-artifact-name.outputs.curr }}
           path: ${{ steps.set-artifact-name.outputs.curr }}

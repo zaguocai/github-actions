@@ -19,5 +19,3 @@ updates:
     schedule:
       interval: "daily"
 ```
-
-Then Dependabot will PR you version updates as soon as this repository gets updated.

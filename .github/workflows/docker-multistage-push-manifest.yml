@@ -70,14 +70,14 @@ jobs:
         if: ${{ inputs.has_refs }}
 
       - name: "[SETUP] Setup QEMU environment"
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+          image: tonistiigi/binfmt:qemu-v8.1.5
+          platforms: linux/amd64,linux/arm64
 
       - name: "[SETUP] Determine Docker tag"
         id: tag
-        uses: zaguocai/docker-tag-action@master
+        uses: linuxeye/docker-tag-action@master
 
       - name: "[SETUP] Determine manifest arches"
         id: manifest
@@ -96,7 +96,7 @@ jobs:
       # Login
       # ------------------------------------------------------------
       - name: "Login"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -106,7 +106,7 @@ jobs:
       # Create Manifest
       # ------------------------------------------------------------
       - name: "[Create Manifest] (${{ steps.manifest.outputs.arches }})"
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make manifest-create VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} ARCHES=${{ steps.manifest.outputs.arches }} TAG=${{ steps.tag.outputs.docker-tag }}
@@ -116,7 +116,7 @@ jobs:
       # Deploy Manifest
       # ------------------------------------------------------------
       - name: "[Push Manifest] ${{ steps.tag.outputs.docker-tag }}"
-        uses: cytopia/shell-command-retry-action@v0.1.6
+        uses: linuxeye/shell-command-retry-action@master
         with:
           command: |
             make manifest-push VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} TAG=${{ steps.tag.outputs.docker-tag }}
